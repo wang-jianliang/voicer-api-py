@@ -1,14 +1,48 @@
-from flask import Flask
+from flask import Flask, request, Response
+from logging.config import dictConfig
 from gradio_client import Client
+
+from settings import API_ROUTE_PREFIX_TTS
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
+@app.route(f"{API_ROUTE_PREFIX_TTS}", methods=["POST"])
+def tts():
+    text = request.json.get("text")
+    name = request.json.get("name")
+    print(f"generating audio for {name}")
+    if not text:
+        return "text is required", 400
+    if not name:
+        return "name is required", 400
+    
+    if name.startswith("chattts"):
+        return chattts(text, name)
+    else:
+        return "name is not supported", 400
+    
 
+def chattts(text, name):
+    app.logger.info(f"generating audio for {name} using ChatTTS")
     client = Client("Dzkaka/ChatTTS")
     result = client.predict(
-        text="四川美食确实以辣闻名，但也有不辣的选择。比如甜水面、赖汤圆、蛋烘糕、叶儿粑等，这些小吃口味温和，甜而不腻，也很受欢迎。",
+        text=text,
         temperature=0.3,
         top_P=0.7,
         top_K=20,
@@ -18,5 +52,12 @@ def hello_world():
         api_name="/generate_audio"
     )
     print(result)
+    audio_path = result[0]
 
-    return "<p>Hello, World!</p>"
+    def generate():
+        with open(audio_path, "rb") as f:
+            data = f.read(1024)
+            while data:
+                yield data
+                data = f.read(1024)
+    return Response(generate(), mimetype="audio/wav")
