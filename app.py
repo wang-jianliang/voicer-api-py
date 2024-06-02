@@ -1,6 +1,7 @@
 from flask import Flask, request, Response
 from logging.config import dictConfig
 from gradio_client import Client
+import os
 
 from settings import API_ROUTE_PREFIX_TTS
 
@@ -40,7 +41,10 @@ def tts():
 
 def chattts(text, name):
     app.logger.info(f"generating audio for {name} using ChatTTS")
-    client = Client("jianliang00/ChatTTS", hf_token=os.getenv("HF_TOKEN"))
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        return "token not found", 400
+    client = Client("jianliang00/ChatTTS", hf_token=token)
     result = client.predict(
         text=text,
         temperature=0.3,
