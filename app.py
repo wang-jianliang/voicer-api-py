@@ -4,6 +4,9 @@ from gradio_client import Client
 import os
 
 from settings import API_ROUTE_PREFIX_TTS
+from dotenv import load_dotenv
+
+load_dotenv()  # take environment variables from .env.
 
 dictConfig({
     'version': 1,
