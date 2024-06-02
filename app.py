@@ -26,7 +26,7 @@ app = Flask(__name__)
 def tts():
     text = request.json.get("text")
     name = request.json.get("name")
-    print(f"generating audio for {name}")
+    app.logger.info(f"generating audio for {name}")
     if not text:
         return "text is required", 400
     if not name:
@@ -40,7 +40,7 @@ def tts():
 
 def chattts(text, name):
     app.logger.info(f"generating audio for {name} using ChatTTS")
-    client = Client("Dzkaka/ChatTTS")
+    client = Client("jianliang00/ChatTTS")
     result = client.predict(
         text=text,
         temperature=0.3,
@@ -51,7 +51,7 @@ def chattts(text, name):
         refine_text_flag=True,
         api_name="/generate_audio"
     )
-    print(result)
+    app.logger.info(result)
     audio_path = result[0]
 
     def generate():
