@@ -25,6 +25,11 @@ app = Flask(__name__)
 
 @app.route(f"{API_ROUTE_PREFIX_TTS}", methods=["POST"])
 def tts():
+    # Get and check the authentication token
+    token = request.headers.get("Authorization")
+    if not token or token != "Bearer " + os.getenv("API_TOKEN"):
+        return "Unauthorized", 401
+
     text = request.json.get("text")
     name = request.json.get("name")
     app.logger.info(f"generating audio for {name}")
