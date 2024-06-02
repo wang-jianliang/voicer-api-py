@@ -40,7 +40,7 @@ def tts():
 
 def chattts(text, name):
     app.logger.info(f"generating audio for {name} using ChatTTS")
-    client = Client("jianliang00/ChatTTS")
+    client = Client("jianliang00/ChatTTS", hf_token=os.getenv("HF_TOKEN"))
     result = client.predict(
         text=text,
         temperature=0.3,
